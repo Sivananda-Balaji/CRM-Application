@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const { PORT } = require("./configs/server.config");
 const authRouter = require("./routes/auth.route");
 const { DB_URL } = require("./configs/db.config");
+const userRouter = require("./routes/user.route");
 
 const app = express();
 
@@ -24,6 +25,7 @@ mongoose
 
 //middleware using url
 app.use("/crm/api/v1/auth", authRouter);
+app.use("/crm/api/v1/", userRouter);
 
 // server listening
 app.listen(PORT, () => {
