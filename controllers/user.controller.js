@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const User = require("../models/user.model");
 const { userResponse } = require("../utils/objectConvertor");
 
@@ -24,16 +25,22 @@ const findById = async (req, res) => {
     }
   } catch (err) {
     console.log(`Error: ${err}`);
+    return res.status(500).send({
+      message: "internal server error",
+    });
   }
 };
 
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, userType, userStatus } = req.body;
+    let { name, userType, userStatus, password } = req.body;
+    if (password) {
+      password = bcrypt.hashSync(password, 10);
+    }
     const updatedUser = await User.findOneAndUpdate(
       { userId: id },
-      { name, userType, userStatus, updatedAt: Date.now() },
+      { name, userType, userStatus, password, updatedAt: Date.now() },
       { new: true }
     );
     if (updatedUser) {
@@ -43,6 +50,9 @@ const updateUser = async (req, res) => {
     }
   } catch (err) {
     console.log(`Error: ${err}`);
+    return res.status(500).send({
+      message: "internal server error",
+    });
   }
 };
 
