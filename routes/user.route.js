@@ -8,9 +8,9 @@ const { verifyToken, isAdmin, checkUserType } = require("../middlewares/auth");
 
 const router = express.Router();
 
-router.route("/users").get([verifyToken, isAdmin], findAll);
+router.route("/").get([verifyToken, isAdmin], findAll);
 router
-  .route("/users/:id")
+  .route("/:id")
   .get([verifyToken, isAdmin], findById)
   .put([verifyToken, checkUserType], updateUser);
 
