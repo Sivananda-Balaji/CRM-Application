@@ -42,6 +42,15 @@ const checkUserType = async (req, res, next) => {
     if (!allowedUserTypes.includes(loggedInUser.userType)) {
       return res.status(403).send({ message: "User Type is not valid!" });
     }
+    const { userType, userStatus } = req.body;
+    if (
+      loggedInUser.userId === userToUpdate.userId &&
+      (userType || userStatus)
+    ) {
+      return res.status(403).send({
+        message: "Only Admin should Update the userType or userStatus.",
+      });
+    }
 
     if (
       (loggedInUser && loggedInUser.userType === "ADMIN") ||
@@ -56,7 +65,7 @@ const checkUserType = async (req, res, next) => {
   } catch (err) {
     console.log(err);
     res.status(500).send({
-      message: err,
+      message: "Internal Server Error",
     });
   }
 };
