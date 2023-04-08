@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: "APPROVED",
   },
+  ticketsCreated: {
+    type: [mongoose.SchemaTypes.ObjectId],
+    ref: "Ticket",
+  },
+  ticketsAssigned: {
+    type: [mongoose.SchemaTypes.ObjectId],
+    ref: "Ticket",
+  },
 });
 
 const User = mongoose.model("User", userSchema);
