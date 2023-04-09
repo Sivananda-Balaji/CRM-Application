@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { secret } = require("../configs/auth.config");
 const User = require("../models/user.model");
+const Ticket = require("../models/ticket.model");
 
 const verifyToken = (req, res, next) => {
   let token = req.headers["x-access-token"];
@@ -27,7 +28,7 @@ const isAdmin = async (req, res, next) => {
     next();
   } else {
     return res.status(403).send({
-      message: "Admin only access the user details",
+      message: "Admin only access the particular user / ticket details",
     });
   }
 };
@@ -64,10 +65,60 @@ const checkUserType = async (req, res, next) => {
     }
   } catch (err) {
     console.log(err);
-    res.status(500).send({
+    return res.status(500).send({
       message: "Internal Server Error",
     });
   }
 };
 
-module.exports = { verifyToken, isAdmin, checkUserType };
+const ticketPermission = async (req, res, next) => {
+  try {
+    const loggedInUser = await User.findOne({ userId: req.userId });
+    const ticketToUpdate = await Ticket.findOne({ _id: req.params.id });
+    //logic for enginner to update ticket
+    if (loggedInUser.userType === "ENGINEER") {
+      const { status, ...rest } = req.body;
+      if (Object.keys(rest).length > 0) {
+        return res
+          .status(403)
+          .send({ message: "Engineers are allowed to change status only" });
+      }
+    }
+    //logic for customer to update ticket
+    if (loggedInUser.userType === "CUSTOMER") {
+      const { title, description, ticketPriority, ...rest } = req.body;
+      if (Object.keys(rest).length > 0) {
+        return res.status(403).send({
+          message:
+            "Customers are allowed to change title,description and priority",
+        });
+      }
+    }
+    if (
+      loggedInUser.userType === "CUSTOMER" &&
+      loggedInUser.userId !== ticketToUpdate.reporter
+    ) {
+      return res.status(403).send({
+        message: "Only ticket owner or ADMIN update the ticket",
+      });
+    }
+    // logic for ADMIN to update ticket
+    if (loggedInUser.userType === "ADMIN") {
+      const { assignee } = req.body;
+      const user = await User.findOne({ userId: assignee });
+      if (user.userType === "CUSTOMER") {
+        return res.status(403).send({
+          message: "Can't Assign Ticket to Customer",
+        });
+      }
+    }
+    next();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({
+      message: "internal server error",
+    });
+  }
+};
+
+module.exports = { verifyToken, isAdmin, checkUserType, ticketPermission };
