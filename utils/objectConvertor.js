@@ -41,4 +41,15 @@ const ticketResFilter = (tickets) => {
   return ticketResult;
 };
 
-module.exports = { userResponse, ticketResponse, ticketResFilter };
+const commentResponse = ({ _id, content, ticketId, commenterId }) => ({
+  _id,
+  content,
+  ticketId,
+  commenterId,
+});
+module.exports = {
+  userResponse,
+  ticketResponse,
+  ticketResFilter,
+  commentResponse,
+};
