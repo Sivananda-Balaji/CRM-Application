@@ -2,6 +2,7 @@ const jwt = require("jsonwebtoken");
 const { secret } = require("../configs/auth.config");
 const User = require("../models/user.model");
 const Ticket = require("../models/ticket.model");
+const constants = require("../utils/constants");
 
 const verifyToken = (req, res, next) => {
   let token = req.headers["x-access-token"];
@@ -121,4 +122,33 @@ const ticketPermission = async (req, res, next) => {
   }
 };
 
-module.exports = { verifyToken, isAdmin, checkUserType, ticketPermission };
+const commentPermission = async (req, res, next) => {
+  try {
+    const loggedInUser = await User.findOne({ userId: req.userId });
+    if (
+      loggedInUser &&
+      loggedInUser.userType === constants.userTypes.customer
+    ) {
+      const ticket = await Ticket.findOne({ _id: req.params.ticketId });
+      if (ticket.reporter !== loggedInUser.userId) {
+        return res.status(403).send({
+          message:
+            "Customers are only allowed to update the tickets that they have created.",
+        });
+      }
+    }
+    next();
+  } catch (err) {
+    console.log(err);
+    return res.status(500).send({
+      message: "internal server error",
+    });
+  }
+};
+module.exports = {
+  verifyToken,
+  isAdmin,
+  checkUserType,
+  ticketPermission,
+  commentPermission,
+};
