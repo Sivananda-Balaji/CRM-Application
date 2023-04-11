@@ -10,7 +10,12 @@ const {
   verifyToken,
   ticketPermission,
   isAdmin,
+  commentPermission,
 } = require("../middlewares/auth");
+const {
+  createComment,
+  fetchComment,
+} = require("../controllers/comment.controller");
 
 const router = express.Router();
 
@@ -22,5 +27,9 @@ router
   .route("/:id")
   .put([verifyToken, ticketPermission], updateTicket)
   .get([verifyToken, isAdmin], getTicket);
+router
+  .route("/:ticketId/comments")
+  .post([verifyToken, commentPermission], createComment)
+  .get([verifyToken, isAdmin], fetchComment);
 
 module.exports = router;
